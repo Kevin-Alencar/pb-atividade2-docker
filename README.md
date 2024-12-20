@@ -59,7 +59,7 @@ Antes de iniciar, assegure-se de que os seguintes recursos estão configurados:
 - Saída
   | Tipo          | Protocolo|  Porta     |      Tipo de Origem         |
   |---------------|----------|------------|-----------------------------|
-  |     NFS       |    TCP   |   2049     |        G.S do EFS           |
+  | Todo tráfego  |   Todos  |   Tudo     |        0.0.0.0/0            |
 ### Para o RDS MySql:
 - Entrada 
   | Tipo         | Protocolo|  Porta     |      Tipo de Origem         |
@@ -89,6 +89,23 @@ Antes de iniciar, assegure-se de que os seguintes recursos estão configurados:
   | Tipo         | Protocolo|  Porta     |      Tipo de Origem         |
   |--------------|----------|------------|-----------------------------|
   | Todo tráfego |   TCP    |   Tudo     | Grupo de Segurança da EC2   |
+
+  ## 3° Passo: Crie um banco de dados RDS MySql:
+## A criação do RDS precisa contemplar o seguintes tópicos:
+- Escolha criação padrão
+- Tipo de mecanismo: MySql
+- Modelos: escolha o nível gratuito
+- Faça a identificação do seu DB com nome, login e senha
+- Configuração da instância: db.t3.micro
+- Conectividade: Conectar-se a um recurso de computação do EC2
+- Escolha sua EC2 criada anteriormente
+- Acesso público: não
+- Escolha o grupo de segurança específico para o RDS que criamos antes
+- Vá em detalhes adicionais e nomeie seu banco de dados e guarde esse nome que será necessário
+- Clique em criar.
+- Então, após criar a EC2 e o RDS, conecte os dois:
+
+  ![image](https://github.com/user-attachments/assets/1e6bbe71-3b9e-4b55-acd6-4282673e538a)
     
 ## 3° Passo: Crie uma Instância EC2 
 ## Nesta etapa vamos criar uma intância EC2 com as seguintes configurações:
@@ -105,38 +122,55 @@ Antes de iniciar, assegure-se de que os seguintes recursos estão configurados:
 ```  
 #!/bin/bash
 
-sudo yum update -y
-sudo yum install docker -y
-sudo systemctl start docker
-sudo systemctl enable docker
-sudo usermod -aG docker ec2-user
-sudo chkconfig docker on
+# Atualiza o sistema e instala dependências
+sudo apt-get update -y
+sudo apt-get upgrade -y
+sudo apt-get install -y docker.io
+
+# Instalar docker-compose
 sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 sudo chmod +x /usr/local/bin/docker-compose
-sudo mv /usr/local/bin/docker-compose /bin/docker-compose
-sudo mkdir /home/ec2-user/wordpress
-sudo mkdir /mnt/efs
-sudo chmod 777 /mnt/efs
+
+# Adicionar usuário ao grupo docker
+sudo usermod -aG docker $USER
+newgrp docker
+
+# Configura o diretório para o projeto WordPress
+PROJECT_DIR=/home/ubuntu/wordpress
+sudo mkdir -p $PROJECT_DIR
+sudo chown -R $USER:$USER $PROJECT_DIR
+cd $PROJECT_DIR
+
+# Cria o arquivo docker-compose.yml
+sudo tee docker-compose.yml > /dev/null <<EOL
+version: '3.8'
+
+services:
+  wordpress:
+    image: wordpress:latest
+    container_name: wordpress
+    ports:
+      - "80:80"
+    environment:
+      WORDPRESS_DB_HOST: seu endpoint do BD:3306
+      WORDPRESS_DB_USER: seu user
+      WORDPRESS_DB_PASSWORD: sua senha
+      WORDPRESS_DB_NAME: nome do seu banco de dados (não o da instãncia RDS)
+    volumes:
+      - wordpress_data:/var/www/html
+
+volumes:
+  wordpress_data:
+EOL
+
+# Inicia o Docker Compose
+docker-compose up -d
+
 ```
 
 </div>
 
-## 4° Passo: Crie um banco de dados RDS MySql:
-## A criação do RDS precisa contemplar o seguintes tópicos:
-- Escolha criação padrão
-- Tipo de mecanismo: MySql
-- Modelos: escolha o nível gratuito
-- Faça a identificação do seu DB com nome, login e senha
-- Configuração da instância: db.t3.micro
-- Conectividade: Conectar-se a um recurso de computação do EC2
-- Escolha sua EC2 criada anteriormente
-- Acesso público: não
-- Escolha o grupo de segurança específico para o RDS que criamos antes
-- Vá em detalhes adicionais e nomeie seu banco de dados e guarde esse nome que será necessário
-- Clique em criar.
-- Então, após criar a EC2 e o RDS, conecte os dois:
 
-  ![image](https://github.com/user-attachments/assets/1e6bbe71-3b9e-4b55-acd6-4282673e538a)
 - Conecte-se ao terminal de sua instância:
 - Para isso precisamos certificar que podemos nos conectar na instância e ela ter acesso à internet para realizar seus comandos, portanto:
 - Crie um endpoint EC2 Connect para poder acessar o terminal da sua instância
