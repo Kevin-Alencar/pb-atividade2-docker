@@ -236,9 +236,9 @@ volumes:
 
 -Configurar as verificações de integridade
 
-  | Protocolo ping | Porta ping | Caminho de ping |
-  |----------------|------------|-----------------|
-  |     HTTP       |    80      |     HTTP        |       
+  | Protocolo ping | Porta ping |     Caminho de ping         |
+  |----------------|------------|-----------------------------|
+  |     HTTP       |    80      |  /wp-admin/install.php      |       
   
 ## 7° passo: Crie um grupo de Auto Scaling:
 ## Características do Auto Scaling:
