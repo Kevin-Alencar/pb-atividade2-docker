@@ -97,11 +97,11 @@ Antes de iniciar, assegure-se de que os seguintes recursos estão configurados:
 - Modelos: escolha o nível gratuito
 - Faça a identificação do seu DB com nome, login e senha
 - Configuração da instância: db.t3.micro
-- Conectividade: Conectar-se a um recurso de computação do EC2
-- Escolha sua EC2 criada anteriormente
+- Conectividade: Não se conectar EC2, pois iremos colocar posteriormente
 - Acesso público: não
 - Escolha o grupo de segurança específico para o RDS que criamos antes
 - Vá em detalhes adicionais e nomeie seu banco de dados e guarde esse nome que será necessário
+- Coloque as Tags necessárias 
 - Clique em criar.
 - Então, após criar a EC2 e o RDS, conecte os dois:
 
@@ -165,11 +165,9 @@ EOL
 
 # Inicia o Docker Compose
 docker-compose up -d
-
 ```
 
 </div>
-
 
 - Conecte-se ao terminal de sua instância:
 - Para isso precisamos certificar que podemos nos conectar na instância e ela ter acesso à internet para realizar seus comandos, portanto:
