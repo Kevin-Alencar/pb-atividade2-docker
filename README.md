@@ -59,7 +59,7 @@ Antes de iniciar, assegure-se de que os seguintes recursos estão configurados:
 - Saída
   | Tipo          | Protocolo|  Porta     |      Tipo de Origem         |
   |---------------|----------|------------|-----------------------------|
-  | Todo tráfego  |    Tudo  |   Todos    |        0.0.0.0/0            |
+  |     NFS       |    TCP   |   2049     |        G.S do EFS           |
 ### Para o RDS MySql:
 - Entrada 
   | Tipo         | Protocolo|  Porta     |      Tipo de Origem         |
@@ -116,6 +116,7 @@ sudo chmod +x /usr/local/bin/docker-compose
 sudo mv /usr/local/bin/docker-compose /bin/docker-compose
 sudo mkdir /home/ec2-user/wordpress
 sudo mkdir /mnt/efs
+sudo chmod 777 /mnt/efs
 ```
 
 </div>
@@ -131,6 +132,7 @@ sudo mkdir /mnt/efs
 - Escolha sua EC2 criada anteriormente
 - Acesso público: não
 - Escolha o grupo de segurança específico para o RDS que criamos antes
+- Vá em detalhes adicionais e nomeie seu banco de dados e guarde esse nome que será necessário
 - Clique em criar.
 - Então, após criar a EC2 e o RDS, conecte os dois:
 
@@ -161,10 +163,34 @@ sudo mkdir /mnt/efs
   fs-0fe36ac0f07bfc20e.efs.us-east-1.amazonaws.com:/    /mnt/efs    nfs4    defaults,_netdev,rw    0   0
   porém, esse DNS deve ser alterado pelo que corresponde ao seu EFS
   - Salve o arquivo nano apertando Ctrl+o, Enter e Ctrl+x
-  - Feito isso, excecute o comando sudo umount /mnt/efs e depois sudo mount -a
-  - 
- 
+  - Feito isso, excecute o comando sudo umount /mnt/efs (desmontar o EFS) e depois sudo mount -a (montar o EFS agora com as alterações que fizemos)
+  - Agora, para iniciar o container do WordPress, é necessário criar um arquivo docker-compose.yml no diretório wordpress contendo as instruções abaixo:
 
+```
+services:
+  wordpress:
+    image: wordpress:latest
+    ports:
+      - 80:80
+    environment:
+      WORDPRESS_DB_HOST: endpoint do rds
+      WORDPRESS_DB_USER: seu user
+      WORDPRESS_DB_PASSWORD: sua senha
+      WORDPRESS_DB_NAME: nome do banco (não da instância RDS)
+    volumes:
+      - wordpress:/var/www/html
+
+volumes:
+  wordpress:
+
+ ```
+
+- Feito isso, estará pronto para usar o docker-compose com o comando docker-compose up -d e depois docker ps para verificar o conteiner inicializado:
+
+  ![image](https://github.com/user-attachments/assets/9c31199a-260e-4233-8261-b6ebe4157ce9)
+
+- Para testar o banco de dados no conteiner excecute: docker exec -it <ID_DO_CONTAINER_WORDPRESS> /bin/bash
+- Dentro do container WordPress execute: apt-get update -y e depois apt-get install default-mysql-client -y
 ## 6° Passo: Crie um Load Balancer:
 ## Característica do Load Balance:
 - Voltado para a Internet
