@@ -119,7 +119,7 @@ sudo mkdir /mnt/efs
 </div>
 
 ## 4° Passo: Crie um banco de dados RDS MySql:
-## Características do RDS:
+## A criação do RDS precisa contemplar o seguintes tópicos:
 - Escolha criação padrão
 - Tipo de mecanismo: MySql
 - Modelos: escolha o nível gratuito
@@ -129,7 +129,24 @@ sudo mkdir /mnt/efs
 - Escolha sua EC2 criada anteriormente
 - Acesso público: não
 - Escolha o grupo de segurança específico para o RDS que criamos antes
-- 
+- Clique em criar.
+- Então, após criar a EC2 e o RDS, conecte os dois:
+
+  ![image](https://github.com/user-attachments/assets/1e6bbe71-3b9e-4b55-acd6-4282673e538a)
+## 5° Passo: Conectar-se ao terminal de sua instância:
+### Para isso precisamos certificar que podemos nos conectar na instância e ela ter acesso à internet para realizar seus comandos, portanto:
+- Vá em VPC, Gateways NAT e Criar Gateway NAT
+- Dê um nome ao gateway NAT e selecione a mesma sub-rede que colocamos na EC2
+- Tipo de conectividade: Pública
+- Aloque um IP elástico
+- Crie o Gateway NAT:
+
+  ![image](https://github.com/user-attachments/assets/5a58e484-0908-430e-8801-9016da9f4990)
+
+- Ainda em VPC, vá em rotas de tabela
+- Nas sub-redes privadas, vá em rotas e editar rotas, na próxima tela adicione o Gatway NAT criado, da seguinte forma:
+
+  ![image](https://github.com/user-attachments/assets/ef830b6d-c707-405e-ba53-412326a3bc8b)
 
 ## 5° Passo: Crie um Elastic File System (EFS):
 ## Características do EFS:
