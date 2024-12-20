@@ -37,6 +37,14 @@
 Antes de iniciar, assegure-se de que os seguintes recursos estão configurados:
 - Conta AWS com permissões para criar instâncias EC2, RDS, EFS e Load Balancer.
 ## 1° Passo: Entre na AWS e comece criando uma VPC com duas zonas de disponibilidade, duas sub-redes Privadas e duas sub-redes Públicas
+## Nesta etapa iremos criar nossa VPC e configura-la com os seguintes aspectos
+- Selecione "VPC e muito mais"
+- Nomeie a VPC
+- Escolha duas zonas de disponibilidade
+- Escolha duas sub-redes privadas e duas sub-redes públicas
+
+  ![image](https://github.com/user-attachments/assets/373134ce-46a6-4845-aaf2-914020f78791)
+
 ## 2° Passo: Crie oo grupos de segurança para o EC2, RDS MySql, EFS e Load Balance com os seguintes procolos
 ### Para o EC2:
 
@@ -62,6 +70,8 @@ Antes de iniciar, assegure-se de que os seguintes recursos estão configurados:
   | HTTPS         | TCP     |   443      | Qualquer Lugar   | 0.0.0.0/0   |
 
 ## 3° Passo: Crie uma Instância EC2 
+## Nesta etapa vamos criar uma intância EC2 com as seguintes configurações:
+- 
 ### Características da EC2:
 - Tags de permissão
 - Distribuição: Amazon Linux
