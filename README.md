@@ -42,6 +42,8 @@ Antes de iniciar, assegure-se de que os seguintes recursos estão configurados:
 - Nomeie a VPC
 - Escolha duas zonas de disponibilidade
 - Escolha duas sub-redes privadas e duas sub-redes públicas
+- Escolha criar um gateway NAT por AZ
+- Escolha criar gateway da internet
 
   ![image](https://github.com/user-attachments/assets/373134ce-46a6-4845-aaf2-914020f78791)
 
@@ -133,23 +135,35 @@ sudo mkdir /mnt/efs
 - Então, após criar a EC2 e o RDS, conecte os dois:
 
   ![image](https://github.com/user-attachments/assets/1e6bbe71-3b9e-4b55-acd6-4282673e538a)
-## 5° Passo: Conectar-se ao terminal de sua instância:
-### Para isso precisamos certificar que podemos nos conectar na instância e ela ter acesso à internet para realizar seus comandos, portanto:
-- Vá em VPC, Gateways NAT e Criar Gateway NAT
-- Dê um nome ao gateway NAT e selecione a mesma sub-rede que colocamos na EC2
-- Tipo de conectividade: Pública
-- Aloque um IP elástico
-- Crie o Gateway NAT:
-
-  ![image](https://github.com/user-attachments/assets/5a58e484-0908-430e-8801-9016da9f4990)
-
-- Ainda em VPC, vá em rotas de tabela
-- Nas sub-redes privadas, vá em rotas e editar rotas, na próxima tela adicione o Gatway NAT criado, da seguinte forma:
-
-  ![image](https://github.com/user-attachments/assets/ef830b6d-c707-405e-ba53-412326a3bc8b)
+- Conecte-se ao terminal de sua instância:
+- Para isso precisamos certificar que podemos nos conectar na instância e ela ter acesso à internet para realizar seus comandos, portanto:
+- Crie um endpoint EC2 Connect para poder acessar o terminal da sua instância
+- Feito isso, volte para a conexão
 
 ## 5° Passo: Crie um Elastic File System (EFS):
-## Características do EFS:
+- Pesquise pelo serviço EFS na AWS
+- Dê um nome ao seu EFS
+- Clique em personalizar
+- Na primeira etapa, apenas clique próximo
+- Na segunda etapa, tire os grupos de segurança default e coloque o do EFS criado anteriormente 
+- Na próxima etapa, apenas conclua em criar efs
+- Criado o EFS, clique nele e vá em anexar
+- Dentre as opções, escolha a montagem via cliente NFS e cole essa comando no terminal, porém substitua "efs" pelo diretório já criado "/mnt/efs"  
+  sudo mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport fs-0fe36ac0f07bfc20e.efs.us-east-1.amazonaws.com:/ efs
+  exemplo:
+  sudo mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport fs-0fe36ac0f07bfc20e.efs.us-east-1.amazonaws.com:/ /mnt/efs
+-Para testar a montagem, execute o comando df -h que monstrar=a o que foi montado no disco:
+
+![image](https://github.com/user-attachments/assets/e40eb136-4dde-4623-a5db-02606c76d9d2)
+
+-Perceba que foi montado com sucesso
+- Agora para automatizar essa montagem, vamos editar o "fstab" com o comando sudo nano /etc/fstab adicionando uma linha com o comando:
+  fs-0fe36ac0f07bfc20e.efs.us-east-1.amazonaws.com:/    /mnt/efs    nfs4    defaults,_netdev,rw    0   0
+  porém, esse DNS deve ser alterado pelo que corresponde ao seu EFS
+  - Salve o arquivo nano apertando Ctrl+o, Enter e Ctrl+x
+  - Feito isso, excecute o comando sudo umount /mnt/efs e depois sudo mount -a
+  - 
+ 
 
 ## 6° Passo: Crie um Load Balancer:
 ## Característica do Load Balance:
