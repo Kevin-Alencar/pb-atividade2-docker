@@ -107,7 +107,7 @@ Antes de iniciar, assegure-se de que os seguintes recursos estão configurados:
 
   ![image](https://github.com/user-attachments/assets/1e6bbe71-3b9e-4b55-acd6-4282673e538a)
     
-## 3° Passo: Crie uma Instância EC2 
+## 4° Passo: Crie uma Instância EC2 
 ## Nesta etapa vamos criar uma intância EC2 com as seguintes configurações:
 - Tags de permissão (Se necessário)
 - Distribuição Amazon Linux 2023
