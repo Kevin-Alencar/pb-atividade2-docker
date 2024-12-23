@@ -47,50 +47,36 @@ Antes de iniciar, assegure-se de que os seguintes recursos estão configurados:
 
   ![image](https://github.com/user-attachments/assets/373134ce-46a6-4845-aaf2-914020f78791)
 
-## 2° Passo: Crie oo grupos de segurança para o EC2, RDS MySql, EFS e Load Balance com os seguintes procolos
-### Para o EC2:
+## 2° Passo: Crie oo grupos de segurança público e privado com os seguintes procolos
+### Para o grupo de segurança Público:
 - Entrada 
   | Tipo         | Protocolo|  Porta     |      Tipo de Origem         |
   |--------------|----------|------------|-----------------------------|
-  |     HTTP     |    TCP   |    80      |    G.S do Load Balancer     |
-  |     HTTPS    |    TCP   |    443     |    G.S do Load Balancer     |
-  |     NFS      |    TCP   |   2049     |        G.S do EFS           |
+  |     HTTP     |    TCP   |    80      |        0.0.0.0/0            |
+  |     HTTPS    |    TCP   |    443     |        0.0.0.0/0            |
   |     SSH      |    TCP   |    22      |        0.0.0.0/0            |
 - Saída
   | Tipo          | Protocolo|  Porta     |      Tipo de Origem         |
   |---------------|----------|------------|-----------------------------|
   | Todo tráfego  |   Todos  |   Tudo     |        0.0.0.0/0            |
-### Para o RDS MySql:
+### Para o Privado:
 - Entrada 
   | Tipo         | Protocolo|  Porta     |      Tipo de Origem         |
   |--------------|----------|------------|-----------------------------|
-  | MySql/Aurora |    TCP   |   3306     | Grupo de Segurança da EC2   |
+  | MySql/Aurora |    TCP   |   3306     |        0.0.0.0/0            |
+  |     HTTP     |    TCP   |    80      |     grup. seg. público      |
+  |     HTTPS    |    TCP   |    443     |     grup. seg. público      |
+  |     SSH      |    TCP   |    22      |        0.0.0.0/0            |
 - Saída
   | Tipo         | Protocolo|  Porta     |      Tipo de Origem         |
   |--------------|----------|------------|-----------------------------|
   | Todo tráfego |   Todos  |   Todos    |        0.0.0.0/0            |
-### Para o EFS:
-- Entrada
-  | Tipo         | Protocolo|  Porta     |      Tipo de Origem         |
-  |--------------|----------|------------|-----------------------------|
-  |    NFS       |    TCP   |   2049     |  Grupo de Segurança da EC2  |
-- Saída 
-  | Tipo         | Protocolo|  Porta     |      Tipo de Origem         |
-  |--------------|----------|------------|-----------------------------|
-  | Todo tráfego |   Todos  |   Tudo     |        0.0.0.0/0            |
 
-### Para o LoadBalancer:
-- Entrada
-  | Tipo         | Protocolo|  Porta     |      Tipo de Origem         |
-  |--------------|----------|------------|-----------------------------|
-  |     HTTP     |    TCP   |    80      |         0.0.0.0/0           |
-  |     HTTPS    |    TCP   |    443     |         0.0.0.0/0           |
-- Saída
-  | Tipo         | Protocolo|  Porta     |      Tipo de Origem         |
-  |--------------|----------|------------|-----------------------------|
-  | Todo tráfego |   TCP    |   Tudo     | Grupo de Segurança da EC2   |
-
-  ## 3° Passo: Crie um banco de dados RDS MySql:
+  ## 3° Passo: Crie um Elastic File System (EFS):
+- Pesquise pelo serviço EFS na AWS
+- Dê um nome ao seu EFS
+- Crie-o
+  ## 4° Passo: Crie um banco de dados RDS MySql:
 ## A criação do RDS precisa contemplar o seguintes tópicos:
 - Escolha criação padrão
 - Tipo de mecanismo: MySql
@@ -174,9 +160,7 @@ docker-compose up -d
 - Crie um endpoint EC2 Connect para poder acessar o terminal da sua instância
 - Feito isso, volte para a conexão
 
-## 5° Passo: Crie um Elastic File System (EFS):
-- Pesquise pelo serviço EFS na AWS
-- Dê um nome ao seu EFS
+
 - Clique em personalizar
 - Na primeira etapa, apenas clique próximo
 - Na segunda etapa, tire os grupos de segurança default e coloque o do EFS criado anteriormente 
@@ -188,7 +172,7 @@ docker-compose up -d
   sudo mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport fs-0fe36ac0f07bfc20e.efs.us-east-1.amazonaws.com:/ /mnt/efs
 -Para testar a montagem, execute o comando df -h que monstrar=a o que foi montado no disco:
 
-![image](https://github.com/user-attachments/assets/e40eb136-4dde-4623-a5db-02606c76d9d2)
+
 
 -Perceba que foi montado com sucesso
 - Agora para automatizar essa montagem, vamos editar o "fstab" com o comando sudo nano /etc/fstab adicionando uma linha com o comando:
