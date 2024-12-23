@@ -105,6 +105,7 @@ Antes de iniciar, assegure-se de que os seguintes recursos estão configurados:
 - Selecionar seu grupo de segurança privado criado anteriormente
 - Em detalhe avançados, vamos colocar nosso script de incialização que atualizará a máquina, instalará o docker, docker-compose e montagem do EFS:
 <div> 
+  
 ```  
 #!/bin/bash 
  
@@ -136,6 +137,7 @@ EOF
 sudo mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport fs-082b0295d71cc0635.efs.us-east-1.amazonaws.com:/ /mnt/efs
 docker-compose -f /home/ec2-user/wordpress/docker-compose.yml up -d
 ```
+
 </div>
 
 ## 6° Passo: Crie um Load Balancer:
