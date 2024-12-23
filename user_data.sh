@@ -1,45 +1,29 @@
-#!/bin/bash
-
-# Atualiza o sistema e instala dependências
-sudo apt-get update -y
-sudo apt-get upgrade -y
-sudo apt-get install -y docker.io
-
-# Instalar docker-compose
-sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-sudo chmod +x /usr/local/bin/docker-compose
-
-# Adicionar usuário ao grupo docker
-sudo usermod -aG docker $USER
+#!/bin/bash 
+ 
+sudo yum update -y 
+sudo yum install docker -y
+sudo systemctl start docker
+sudo systemctl enable docker
+sudo usermod -aG docker ec2-user
 newgrp docker
-
-# Configura o diretório para o projeto WordPress
-PROJECT_DIR=/home/ubuntu/wordpress
-sudo mkdir -p $PROJECT_DIR
-sudo chown -R $USER:$USER $PROJECT_DIR
-cd $PROJECT_DIR
-
-# Cria o arquivo docker-compose.yml
-sudo tee docker-compose.yml > /dev/null <<EOL
-version: '3.8'
-
+sudo curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
+sudo mkdir /home/ec2-user/wordpress
+cat <<EOF > /home/ec2-user/wordpress/docker-compose.yml
 services:
+ 
   wordpress:
-    image: wordpress:latest
-    container_name: wordpress
+    image: wordpress
+    restart: always
     ports:
-      - "80:80"
+      - 80:80
     environment:
-      WORDPRESS_DB_HOST: seu endpoint do BD:3306
-      WORDPRESS_DB_USER: seu user
-      WORDPRESS_DB_PASSWORD: sua senha
-      WORDPRESS_DB_NAME: nome do seu banco de dados (não o da instãncia RDS)
+      WORDPRESS_DB_HOST: <aqui coloque o endpoint do seu RDS>:3306
+      WORDPRESS_DB_USER: <seu user>
+      WORDPRESS_DB_PASSWORD: <sua senha>
+      WORDPRESS_DB_NAME: <aqui coloque aquele nome que colocamos nos detalhes adicionais do RDS(revise o passo 4, tópico 11)>
     volumes:
-      - wordpress_data:/var/www/html
-
-volumes:
-  wordpress_data:
-EOL
-
-# Inicia o Docker Compose
-docker-compose up -d
+      - /mnt/efs:/var/www/html
+EOF
+sudo mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport fs-082b0295d71cc0635.efs.us-east-1.amazonaws.com:/ /mnt/efs
+docker-compose -f /home/ec2-user/wordpress/docker-compose.yml up -d
