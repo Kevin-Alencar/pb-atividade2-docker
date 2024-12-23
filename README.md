@@ -47,45 +47,48 @@ Antes de iniciar, assegure-se de que os seguintes recursos estão configurados:
 - Escolha duas sub-redes privadas e duas sub-redes públicas
 - Escolha criar um gateway NAT por AZ
 - Escolha criar gateway da internet
-   <div align="center">
-  <![image](https://github.com/user-attachments/assets/373134ce-46a6-4845-aaf2-914020f78791)>
-</div> 
-<div align="center">
-Mapa de recursos da nossa VPC
-</div>
+- Crie a VPC
+  
 ## 2° Passo: Crie os grupos de segurança público e privado com os seguintes procolos
 ### Para o grupo de segurança Público:
-- Entrada 
-  | Tipo         | Protocolo|  Porta     |      Tipo de Origem         |
-  |--------------|----------|------------|-----------------------------|
-  |     HTTP     |    TCP   |    80      |        0.0.0.0/0            |
-  |     HTTPS    |    TCP   |    443     |        0.0.0.0/0            |
-  |     SSH      |    TCP   |    22      |        0.0.0.0/0            |
+- Entrada
+  
+| Tipo         | Protocolo|  Porta     |      Tipo de Origem         |
+|--------------|----------|------------|-----------------------------|
+|     HTTP     |    TCP   |    80      |        0.0.0.0/0            |
+|     HTTPS    |    TCP   |    443     |        0.0.0.0/0            |
+|     SSH      |    TCP   |    22      |        0.0.0.0/0            |
+
 - Saída
-  | Tipo          | Protocolo|  Porta     |      Tipo de Origem         |
-  |---------------|----------|------------|-----------------------------|
-  | Todo tráfego  |   Todos  |   Tudo     |        0.0.0.0/0            |
+  
+| Tipo          | Protocolo|  Porta     |      Tipo de Origem         |
+|---------------|----------|------------|-----------------------------|
+| Todo tráfego  |   Todos  |   Tudo     |        0.0.0.0/0            |
   
 ### Para o grupo de segurança Privado:
-- Entrada 
-  | Tipo         | Protocolo|  Porta     |      Tipo de Origem         |
-  |--------------|----------|------------|-----------------------------|
-  | MySql/Aurora |    TCP   |   3306     |        0.0.0.0/0            |
-  |     HTTP     |    TCP   |    80      |     grup. seg. público      |
-  |     HTTPS    |    TCP   |    443     |     grup. seg. público      |
-  |     SSH      |    TCP   |    22      |        0.0.0.0/0            |
-  |     NFS      |    TCP   |   2049     |        0.0.0.0/0            |
-- Saída
-  | Tipo         | Protocolo|  Porta     |      Tipo de Origem         |
-  |--------------|----------|------------|-----------------------------|
-  | Todo tráfego |   Todos  |   Todos    |        0.0.0.0/0            |
+- Entrada
+  
+| Tipo         | Protocolo|  Porta     |      Tipo de Origem         |
+|--------------|----------|------------|-----------------------------|
+| MySql/Aurora |    TCP   |   3306     |        0.0.0.0/0            |
+|     HTTP     |    TCP   |    80      |     grup. seg. público      |
+|     HTTPS    |    TCP   |    443     |     grup. seg. público      |
+|     SSH      |    TCP   |    22      |        0.0.0.0/0            |
+|     NFS      |    TCP   |   2049     |        0.0.0.0/0            |
 
-  ## 3° Passo: Crie um Elastic File System (EFS):
+- Saída
+
+| Tipo         | Protocolo|  Porta     |      Tipo de Origem         |
+|--------------|----------|------------|-----------------------------|
+| Todo tráfego |   Todos  |   Todos    |        0.0.0.0/0            |
+
+## 3° Passo: Crie um Elastic File System (EFS):
 - Pesquise pelo serviço EFS na AWS
 - Dê um nome ao seu EFS
-- Crie-o
+- Crie o EFS
+- Em anexar, escolha a segunda opção de montagem (essa opção que usaremos no nosso shellscript user_data.sh)
   
-  ## 4° Passo: Crie um banco de dados RDS MySql:
+## 4° Passo: Crie um banco de dados RDS MySql:
 ### A criação do RDS precisa contemplar o seguintes tópicos:
 - Antes de criar, crie um grupo de sub-redes de banco de dados, escolha sua VPC, escolha suas zonas de disponibilidade e escolha as sub-redes privadas de cada AZ
 - Escolha criação padrão
@@ -152,6 +155,7 @@ docker-compose -f /home/ec2-user/wordpress/docker-compose.yml up -d
 - Voltado para a Internet
 - Escolha a VPC criada e as Zonas de Disponibilidade com subnets públicas
 - ATENÇÃO: Escolha o grupo de segurança Público
+- Adicione as duas instâncias
 
 - Configurar as verificações de integridade
 
@@ -163,12 +167,15 @@ docker-compose -f /home/ec2-user/wordpress/docker-compose.yml up -d
 - No painel EC2, clique em Grupos Auto Scaling
 - Crie um grupo de execução onde colocará os características para escalablidade das EC2
 - Coloque todos os dados idênticos ao das EC2 (Tags, Grupo de seguraça privado, par de chaves, distribuição, script)  EXCETO os dados de sub-rede, veja:
+
  <div align="center">
-<![image](https://github.com/user-attachments/assets/6c87466d-58dc-4106-a332-81837ecb5373)>
+   
+![image](https://github.com/user-attachments/assets/6c87466d-58dc-4106-a332-81837ecb5373)
 </div> 
 <div align="center">
-Este texto estará centralizado.
+Configuração de rede dos grupos Auto Scaling
 </div>
+
 
 - Com esse grupo criado, volta a tela do Auto Scaling e prossiga selecionando-o
 - Escolher as opções de execução de instância: VPC criada e agora escolha as sub-redes privadas de cada zona
@@ -179,8 +186,9 @@ Este texto estará centralizado.
 ## 8° passo: Acesse o wordpress
 - Cole o DNS do Load Balancer no navegador
  <div align="center">
-<![image](https://github.com/user-attachments/assets/d1327d9d-ecdc-464e-b870-675464114908)>
-</div>   
+   
+![image](https://github.com/user-attachments/assets/8a10f506-3360-46ab-8359-92695308f2f5)
+</div>
 <div align="center">
 Tela de Login do Wordpress
 </div>
