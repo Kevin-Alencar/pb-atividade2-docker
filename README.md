@@ -3,12 +3,11 @@
   Este projeto tem como objetivo realizar o deploy de uma aplicação WordPress utilizando Docker em um ambiente na AWS. A solução conta com duas instâncias EC2 para o conteiner de aplicação, um banco de dados AWS RDS MySQL, um serviço AWS EFS para armazenamento de arquivos estáticos, Load Balancer para gerenciar o tráfego e o Auto Scaling para proporcionar escalabilidade para a aplicação.
 - Ponto adicional para o trabalho que utilizar a instalação via script de Start Instance (user_data.sh)
 </div>
-<div align="center">
-  <img src="https://github.com/user-attachments/assets/67f5ff17-0220-48a0-8e3a-bd49fc57e876" alt="Descrição da imagem">
-</div>
-
 
 # Arquitetura do Projeto
+
+  <img src="https://github.com/user-attachments/assets/67f5ff17-0220-48a0-8e3a-bd49fc57e876" alt="Descrição da imagem">
+
 ### Instâncias EC2:
 
 - São servidores virtuais que hospedam os contêineres Docker executando a aplicação WordPress.
@@ -38,8 +37,9 @@
 
 Antes de iniciar, assegure-se de que os seguintes recursos estão configurados:
 - Conta AWS com permissões para criar instâncias EC2, RDS, EFS e Load Balancer.
+  
 ## 1° Passo: Entre na AWS e comece criando uma VPC com duas zonas de disponibilidade, duas sub-redes Privadas e duas sub-redes Públicas
-## Nesta etapa iremos criar nossa VPC e configura-la com os seguintes aspectos
+### Nesta etapa iremos criar nossa VPC e configura-la com os seguintes aspectos
 - Selecione "VPC e muito mais"
 - Nomeie a VPC
 - Escolha duas zonas de disponibilidade
@@ -48,8 +48,8 @@ Antes de iniciar, assegure-se de que os seguintes recursos estão configurados:
 - Escolha criar gateway da internet
   
   ![image](https://github.com/user-attachments/assets/373134ce-46a6-4845-aaf2-914020f78791)
-
-## 2° Passo: Crie oo grupos de segurança público e privado com os seguintes procolos
+  
+## 2° Passo: Crie os grupos de segurança público e privado com os seguintes procolos
 ### Para o grupo de segurança Público:
 - Entrada 
   | Tipo         | Protocolo|  Porta     |      Tipo de Origem         |
@@ -61,7 +61,8 @@ Antes de iniciar, assegure-se de que os seguintes recursos estão configurados:
   | Tipo          | Protocolo|  Porta     |      Tipo de Origem         |
   |---------------|----------|------------|-----------------------------|
   | Todo tráfego  |   Todos  |   Tudo     |        0.0.0.0/0            |
-### Para o Privado:
+  
+### Para o grupo de segurança Privado:
 - Entrada 
   | Tipo         | Protocolo|  Porta     |      Tipo de Origem         |
   |--------------|----------|------------|-----------------------------|
@@ -81,7 +82,7 @@ Antes de iniciar, assegure-se de que os seguintes recursos estão configurados:
 - Crie-o
   
   ## 4° Passo: Crie um banco de dados RDS MySql:
-## A criação do RDS precisa contemplar o seguintes tópicos:
+### A criação do RDS precisa contemplar o seguintes tópicos:
 - Antes de criar, crie um grupo de sub-redes de banco de dados, escolha sua VPC, escolha suas zonas de disponibilidade e escolha as sub-redes privadas de cada AZ
 - Escolha criação padrão
 - Tipo de mecanismo: MySql
@@ -97,7 +98,7 @@ Antes de iniciar, assegure-se de que os seguintes recursos estão configurados:
 - Clique em criar.
     
 ## 5° Passo: Crie duas Instâncias EC2 (uma em cada AZ)
-## Nesta etapa vamos criar duas intâncias EC2 com as seguintes configurações:
+### Nesta etapa vamos criar duas intâncias EC2 com as seguintes configurações:
 - Tags de permissão (Se necessário)
 - Distribuição Amazon Linux 2023
 - Tipo de instância: t2.micro
@@ -142,8 +143,8 @@ docker-compose -f /home/ec2-user/wordpress/docker-compose.yml up -d
 
 </div>
 
-## 6° Passo: Crie um Load Balancer:
-## Característica do Load Balance:
+## 6° Passo: Crie um Classic Load Balancer:
+### Característica do Classic Load Balance:
 - Voltado para a Internet
 - Escolha a VPC criada e as Zonas de Disponibilidade com subnets públicas
 - ATENÇÃO: Escolha o grupo de segurança Público
@@ -155,21 +156,25 @@ docker-compose -f /home/ec2-user/wordpress/docker-compose.yml up -d
   |     HTTP       |    80      |  /wp-admin/install.php      |       
   
 ## 7° passo: Crie um grupo de Auto Scaling:
-## Características do Auto Scaling:
+- No painel EC2, clique em Grupos Auto Scaling
+- Crie um grupo de execução onde colocará os características para escalablidade das EC2
+- Coloque todos os dados idênticos ao das EC2 (Tags, Grupo de seguraça privado, par de chaves, distribuição, script)  EXCETO os dados de sub-rede, veja:
+  
+![image](https://github.com/user-attachments/assets/6c87466d-58dc-4106-a332-81837ecb5373)
 
-
+- Com esse grupo criado, volta a tela do Auto Scaling e prossiga selecionando-o
+- Escolher as opções de execução de instância: VPC criada e agora escolha as sub-redes privadas de cada zona
+- Integrar com outros serviços: anexe o Classic Load balancer já criado
+- Prossiga normalmente as simples etapas e crie seu Grupo Auto Scaling
+- Agora adicionamos escalabilidade ao nosso projeto
+   
 ## 8° passo: Acesse o wordpress
 - Cole o DNS do Load Balancer no navegador
   ![image](https://github.com/user-attachments/assets/d1327d9d-ecdc-464e-b870-675464114908)
-                                Tela de login do Wordpress
-Agora, sua aplicação está rodando.
+  Tela de login do Wordpress
 
+Agora, sua aplicação está rodando com disponibilidade!!!
 
-
-## Integrantes da dupla
-Nome: Kevin Alencar Costa
-Contato: kevin.costa.pb@compass.com.br
-Nome: Tales Santos de Souza
-Contato: 
-
----
+### Integrantes da dupla
+- Nome: Kevin Alencar Costa
+- Nome: Tales Santos de Souza
