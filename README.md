@@ -67,6 +67,7 @@ Antes de iniciar, assegure-se de que os seguintes recursos estão configurados:
   |     HTTP     |    TCP   |    80      |     grup. seg. público      |
   |     HTTPS    |    TCP   |    443     |     grup. seg. público      |
   |     SSH      |    TCP   |    22      |        0.0.0.0/0            |
+  |     NFS      |    TCP   |   2049     |        0.0.0.0/0            |
 - Saída
   | Tipo         | Protocolo|  Porta     |      Tipo de Origem         |
   |--------------|----------|------------|-----------------------------|
@@ -76,8 +77,10 @@ Antes de iniciar, assegure-se de que os seguintes recursos estão configurados:
 - Pesquise pelo serviço EFS na AWS
 - Dê um nome ao seu EFS
 - Crie-o
+  
   ## 4° Passo: Crie um banco de dados RDS MySql:
 ## A criação do RDS precisa contemplar o seguintes tópicos:
+- Antes de criar, crie um grupo de sub-redes de banco de dados, escolha sua VPC, escolha suas zonas de disponibilidade e escolha as sub-redes privadas de cada AZ
 - Escolha criação padrão
 - Tipo de mecanismo: MySql
 - Modelos: escolha o nível gratuito
@@ -85,138 +88,61 @@ Antes de iniciar, assegure-se de que os seguintes recursos estão configurados:
 - Configuração da instância: db.t3.micro
 - Conectividade: Não se conectar EC2, pois iremos colocar posteriormente
 - Acesso público: não
-- Escolha o grupo de segurança específico para o RDS que criamos antes
+- Escolha o grupo de sub-redes de banco de dados criado anteriormente
+- Escolha o grupo de segurança privado
 - Vá em detalhes adicionais e nomeie seu banco de dados e guarde esse nome que será necessário
-- Coloque as Tags necessárias 
+- Coloque as Tags necessárias.
 - Clique em criar.
-- Então, após criar a EC2 e o RDS, conecte os dois:
-
-  ![image](https://github.com/user-attachments/assets/1e6bbe71-3b9e-4b55-acd6-4282673e538a)
     
-## 4° Passo: Crie uma Instância EC2 
-## Nesta etapa vamos criar uma intância EC2 com as seguintes configurações:
+## 5° Passo: Crie duas Instâncias EC2 (uma em cada AZ)
+## Nesta etapa vamos criar duas intâncias EC2 com as seguintes configurações:
 - Tags de permissão (Se necessário)
 - Distribuição Amazon Linux 2023
 - Tipo de instância: t2.micro
-- Crie e salve seu Par de Chaves (escolha de preferência tipo rsa)
-- Em configuração de rede, vá em editar e escolha sua VPC e a sub-rede privada
+- Crie e salve seu Par de Chaves
+- Em configuração de rede, vá em editar e escolha sua VPC e a sub-rede privada da sua zona (se for a segunda EC2 escolha uma AZ diferente da primeira EC2 criada)
 - Desabilitar a opção de atribuir IP Público automaticamente
-- Selecionar seu grupo de segurança da EC2 criado anteriormente
-- Em detalhe avançados, vamos colocar nosso script de incialização que instalará o docker, docker-compose e os pacotes de montagem:
-<div>
-  
+- Selecionar seu grupo de segurança privado criado anteriormente
+- Em detalhe avançados, vamos colocar nosso script de incialização que atualizará a máquina, instalará o docker, docker-compose e montagem do EFS:
+<div> 
 ```  
-#!/bin/bash
-
-# Atualiza o sistema e instala dependências
-sudo apt-get update -y
-sudo apt-get upgrade -y
-sudo apt-get install -y docker.io
-
-# Instalar docker-compose
-sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-sudo chmod +x /usr/local/bin/docker-compose
-
-# Adicionar usuário ao grupo docker
-sudo usermod -aG docker $USER
+#!/bin/bash 
+ 
+sudo yum update -y 
+sudo yum install docker -y
+sudo systemctl start docker
+sudo systemctl enable docker
+sudo usermod -aG docker ec2-user
 newgrp docker
-
-# Configura o diretório para o projeto WordPress
-PROJECT_DIR=/home/ubuntu/wordpress
-sudo mkdir -p $PROJECT_DIR
-sudo chown -R $USER:$USER $PROJECT_DIR
-cd $PROJECT_DIR
-
-# Cria o arquivo docker-compose.yml
-sudo tee docker-compose.yml > /dev/null <<EOL
-version: '3.8'
-
+sudo curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
+sudo mkdir /home/ec2-user/wordpress
+cat <<EOF > /home/ec2-user/wordpress/docker-compose.yml
 services:
+ 
   wordpress:
-    image: wordpress:latest
-    container_name: wordpress
-    ports:
-      - "80:80"
-    environment:
-      WORDPRESS_DB_HOST: seu endpoint do BD:3306
-      WORDPRESS_DB_USER: seu user
-      WORDPRESS_DB_PASSWORD: sua senha
-      WORDPRESS_DB_NAME: nome do seu banco de dados (não o da instãncia RDS)
-    volumes:
-      - wordpress_data:/var/www/html
-
-volumes:
-  wordpress_data:
-EOL
-
-# Inicia o Docker Compose
-docker-compose up -d
-```
-
-</div>
-
-- Conecte-se ao terminal de sua instância:
-- Para isso precisamos certificar que podemos nos conectar na instância e ela ter acesso à internet para realizar seus comandos, portanto:
-- Crie um endpoint EC2 Connect para poder acessar o terminal da sua instância
-- Feito isso, volte para a conexão
-
-
-- Clique em personalizar
-- Na primeira etapa, apenas clique próximo
-- Na segunda etapa, tire os grupos de segurança default e coloque o do EFS criado anteriormente 
-- Na próxima etapa, apenas conclua em criar efs
-- Criado o EFS, clique nele e vá em anexar
-- Dentre as opções, escolha a montagem via cliente NFS e cole essa comando no terminal, porém substitua "efs" pelo diretório já criado "/mnt/efs"  
-  sudo mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport fs-0fe36ac0f07bfc20e.efs.us-east-1.amazonaws.com:/ efs
-  exemplo:
-  sudo mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport fs-0fe36ac0f07bfc20e.efs.us-east-1.amazonaws.com:/ /mnt/efs
--Para testar a montagem, execute o comando df -h que monstrar=a o que foi montado no disco:
-
-
-
--Perceba que foi montado com sucesso
-- Agora para automatizar essa montagem, vamos editar o "fstab" com o comando sudo nano /etc/fstab adicionando uma linha com o comando:
-  fs-0fe36ac0f07bfc20e.efs.us-east-1.amazonaws.com:/    /mnt/efs    nfs4    defaults,_netdev,rw    0   0
-  porém, esse DNS deve ser alterado pelo que corresponde ao seu EFS
-  - Salve o arquivo nano apertando Ctrl+o, Enter e Ctrl+x
-  - Feito isso, excecute o comando sudo umount /mnt/efs (desmontar o EFS) e depois sudo mount -a (montar o EFS agora com as alterações que fizemos)
-  - Agora, para iniciar o container do WordPress, é necessário criar um arquivo docker-compose.yml no diretório wordpress contendo as instruções abaixo:
-
-```
-services:
-  wordpress:
-    image: wordpress:latest
+    image: wordpress
+    restart: always
     ports:
       - 80:80
     environment:
-      WORDPRESS_DB_HOST: endpoint do rds
-      WORDPRESS_DB_USER: seu user
-      WORDPRESS_DB_PASSWORD: sua senha
-      WORDPRESS_DB_NAME: nome do banco (não da instância RDS)
+      WORDPRESS_DB_HOST: <aqui coloque o endpoint do seu RDS>:3306
+      WORDPRESS_DB_USER: <seu user>
+      WORDPRESS_DB_PASSWORD: <sua senha>
+      WORDPRESS_DB_NAME: <aqui coloque aquele nome que colocamos nos detalhes adicionais do RDS(revise o passo 4, tópico 11)>
     volumes:
-      - wordpress:/var/www/html
+      - /mnt/efs:/var/www/html
+EOF
+sudo mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport fs-082b0295d71cc0635.efs.us-east-1.amazonaws.com:/ /mnt/efs
+docker-compose -f /home/ec2-user/wordpress/docker-compose.yml up -d
+```
+</div>
 
-volumes:
-  wordpress:
-
- ```
-
-- Feito isso, estará pronto para usar o docker-compose com o comando docker-compose up -d e depois docker ps para verificar o conteiner inicializado:
-
-  ![image](https://github.com/user-attachments/assets/9c31199a-260e-4233-8261-b6ebe4157ce9)
-
-- Para testar o banco de dados no conteiner excecute: docker exec -it <ID_DO_CONTAINER_WORDPRESS> /bin/bash
-- Dentro do container WordPress execute: apt-get update -y e depois apt-get install default-mysql-client -y
 ## 6° Passo: Crie um Load Balancer:
 ## Característica do Load Balance:
 - Voltado para a Internet
 - Escolha a VPC criada e as Zonas de Disponibilidade com subnets públicas
-- Escolha o grupo de segurança do Load balancer
-- Configurar os Listeners
-  
-  | Protocolo do Listener | Protocolo do Listener |  Protocolo da Intância | Porta da Instância |
-  |-----------------------|-----------------------|------------------------|--------------------|
-  |        HTTP           |         80            |         HTTP           |       80           |
+- ATENÇÃO: Escolha o grupo de segurança Público
 
 -Configurar as verificações de integridade
 
