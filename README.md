@@ -1,10 +1,12 @@
 # Deploy de uma aplicação WordPress usando Docker na AWS
 <div>
-  Este projeto tem como objetivo realizar o deploy de uma aplicação WordPress utilizando Docker em um ambiente na AWS. A solução conta com duas instâncias EC2 para o conteiner de aplicação, um banco de dados AWS RDS MySQL, um serviço AWS EFS para armazenamento de arquivos estáticos e um Load Balancer para gerenciar o tráfego.
+  Este projeto tem como objetivo realizar o deploy de uma aplicação WordPress utilizando Docker em um ambiente na AWS. A solução conta com duas instâncias EC2 para o conteiner de aplicação, um banco de dados AWS RDS MySQL, um serviço AWS EFS para armazenamento de arquivos estáticos, Load Balancer para gerenciar o tráfego e o Auto Scaling para proporcionar escalabilidade para a aplicação.
 - Ponto adicional para o trabalho que utilizar a instalação via script de Start Instance (user_data.sh)
 </div>
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/67f5ff17-0220-48a0-8e3a-bd49fc57e876" alt="Descrição da imagem">
+</div>
 
-![image](https://github.com/user-attachments/assets/67f5ff17-0220-48a0-8e3a-bd49fc57e876) 
 
 # Arquitetura do Projeto
 ### Instâncias EC2:
@@ -44,7 +46,7 @@ Antes de iniciar, assegure-se de que os seguintes recursos estão configurados:
 - Escolha duas sub-redes privadas e duas sub-redes públicas
 - Escolha criar um gateway NAT por AZ
 - Escolha criar gateway da internet
-
+  
   ![image](https://github.com/user-attachments/assets/373134ce-46a6-4845-aaf2-914020f78791)
 
 ## 2° Passo: Crie oo grupos de segurança público e privado com os seguintes procolos
@@ -146,7 +148,7 @@ docker-compose -f /home/ec2-user/wordpress/docker-compose.yml up -d
 - Escolha a VPC criada e as Zonas de Disponibilidade com subnets públicas
 - ATENÇÃO: Escolha o grupo de segurança Público
 
--Configurar as verificações de integridade
+- Configurar as verificações de integridade
 
   | Protocolo ping | Porta ping |     Caminho de ping         |
   |----------------|------------|-----------------------------|
@@ -154,6 +156,13 @@ docker-compose -f /home/ec2-user/wordpress/docker-compose.yml up -d
   
 ## 7° passo: Crie um grupo de Auto Scaling:
 ## Características do Auto Scaling:
+
+
+## 8° passo: Acesse o wordpress
+- Cole o DNS do Load Balancer no navegador
+  ![image](https://github.com/user-attachments/assets/d1327d9d-ecdc-464e-b870-675464114908)
+                                Tela de login do Wordpress
+Agora, sua aplicação está rodando.
 
 
 
