@@ -48,6 +48,8 @@ Antes de iniciar, assegure-se de que os seguintes recursos estão configurados:
 - Escolha criar um gateway NAT por AZ
 - Escolha criar gateway da internet
 - Crie a VPC
+![image](https://github.com/user-attachments/assets/066d51a7-312e-4155-b05c-cd43dfbec099)
+
   
 ## 2° Passo: Crie os grupos de segurança público e privado com os seguintes procolos
 ### Para o grupo de segurança Público:
@@ -87,6 +89,8 @@ Antes de iniciar, assegure-se de que os seguintes recursos estão configurados:
 - Dê um nome ao seu EFS
 - Crie o EFS
 - Em anexar, escolha a segunda opção de montagem (essa opção que usaremos no nosso shellscript user_data.sh)
+![image](https://github.com/user-attachments/assets/073c2f0a-cd4f-40be-8e8b-25a59133a040)
+
   
 ## 4° Passo: Crie um banco de dados RDS MySql:
 ### A criação do RDS precisa contemplar o seguintes tópicos:
